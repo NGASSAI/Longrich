@@ -1,1 +1,176 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Palette et typographie definies en section 5 du cahier des charges — deja
+  validees, a ne pas modifier. --font-sans reste Satoshi (jamais Inter,
+  retire volontairement de l'import shadcn par defaut).
+*/
+@theme {
+  --color-emerald-deep: #0F3D2E;
+  --color-amber-gold: #C89B3C;
+  --color-ivory-warm: #FAF7F0;
+  --color-charcoal: #1F1D1A;
+  --color-sage-pale: #E8EDE4;
+
+  --font-display: "Fraunces", serif;
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Respect strict de prefers-reduced-motion (exige section 4 et 5 du cahier des charges) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+  ---break---
+*/
+
+/* Tokens shadcn/ui, mappes sur la palette officielle plutot que sur le gris
+   neutre genere par defaut : chaque composant shadcn (Button, Card, Dialog...)
+   heritera automatiquement de l'identite visuelle de la marque. */
+@theme inline {
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+  ---break---
+*/
+:root {
+  --background: var(--color-ivory-warm);
+  --foreground: var(--color-charcoal);
+  --card: #FFFFFF;
+  --card-foreground: var(--color-charcoal);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--color-charcoal);
+  --primary: var(--color-emerald-deep);
+  --primary-foreground: var(--color-ivory-warm);
+  --secondary: var(--color-sage-pale);
+  --secondary-foreground: var(--color-emerald-deep);
+  --muted: var(--color-sage-pale);
+  --muted-foreground: #5B5A54;
+  --accent: var(--color-amber-gold);
+  --accent-foreground: var(--color-charcoal);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #E2DFD5;
+  --input: #E2DFD5;
+  --ring: var(--color-amber-gold);
+  --chart-1: var(--color-emerald-deep);
+  --chart-2: var(--color-amber-gold);
+  --chart-3: var(--color-sage-pale);
+  --chart-4: #5B5A54;
+  --chart-5: var(--color-charcoal);
+  --radius: 0.625rem;
+  --sidebar: var(--color-emerald-deep);
+  --sidebar-foreground: var(--color-ivory-warm);
+  --sidebar-primary: var(--color-amber-gold);
+  --sidebar-primary-foreground: var(--color-charcoal);
+  --sidebar-accent: #14523d;
+  --sidebar-accent-foreground: var(--color-ivory-warm);
+  --sidebar-border: #14523d;
+  --sidebar-ring: var(--color-amber-gold);
+}
+
+/*
+  ---break---
+*/
+/* Mode sombre : reserve a l'univers visuel Super Admin (section 5 du cahier
+   des charges — fond quasi noir, accents dores discrets), pas un mode global
+   client/admin. Applique manuellement via la classe .dark sur le layout
+   Super Admin, pas via une preference systeme. */
+.dark {
+  --background: #0B0B0A;
+  --foreground: var(--color-ivory-warm);
+  --card: #16150F;
+  --card-foreground: var(--color-ivory-warm);
+  --popover: #16150F;
+  --popover-foreground: var(--color-ivory-warm);
+  --primary: var(--color-amber-gold);
+  --primary-foreground: #0B0B0A;
+  --secondary: #1F1D1A;
+  --secondary-foreground: var(--color-ivory-warm);
+  --muted: #1F1D1A;
+  --muted-foreground: #9A9689;
+  --accent: var(--color-amber-gold);
+  --accent-foreground: #0B0B0A;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #26241E;
+  --input: #26241E;
+  --ring: var(--color-amber-gold);
+  --chart-1: var(--color-amber-gold);
+  --chart-2: #9A9689;
+  --chart-3: #5B5A54;
+  --chart-4: var(--color-sage-pale);
+  --chart-5: var(--color-ivory-warm);
+  --sidebar: #16150F;
+  --sidebar-foreground: var(--color-ivory-warm);
+  --sidebar-primary: var(--color-amber-gold);
+  --sidebar-primary-foreground: #0B0B0A;
+  --sidebar-accent: #1F1D1A;
+  --sidebar-accent-foreground: var(--color-ivory-warm);
+  --sidebar-border: #26241E;
+  --sidebar-ring: var(--color-amber-gold);
+}
+
+/*
+  ---break---
+*/
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
