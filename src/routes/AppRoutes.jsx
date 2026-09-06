@@ -23,6 +23,7 @@ import { ActivityLogsPage } from "../pages/superadmin/ActivityLogsPage";
 import { MessagingPage as AdminMessagingPage } from "../pages/admin/MessagingPage";
 import { CategoriesPage } from "../pages/admin/CategoriesPage";
 import { StatisticsPage } from "../pages/admin/StatisticsPage";
+import { NotFoundPage } from "../pages/public/NotFoundPage";
 
 const Placeholder = ({ label }) => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -68,7 +69,7 @@ export function AppRoutes() {
   }
 />
 
-        <Route path="*" element={<Placeholder label="Page introuvable (404)" />} />
+<Route path="*" element={<NotFoundPage />} />
       </Route>
 
         {/* --- Admin --- */}
