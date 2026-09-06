@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSocket, useSocketEvent } from "@/context/SocketContext";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/haptics";
+import { MessageCircleOff } from "lucide-react";
 
 const formatTime = (value) =>
   new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -93,11 +94,33 @@ export function MessagingPage() {
     }
     loadConversations();
   });
-
+useSocketEvent("conversation:deleted", ({ conversationId }) => {
+  setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+  if (selectedId === conversationId) {
+    setSelectedId(null);
+    setSelectedConv(null);
+    setMessages([]);
+  }
+});
   // Reception d'une suppression de message en temps reel.
   useSocketEvent("message:deleted", ({ messageId }) => {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   });
+  const handleDeleteConversation = async () => {
+  if (!selectedId) return;
+  if (!window.confirm("Supprimer toute la conversation ? Cette action est irréversible.")) return;
+  vibrate(10);
+  try {
+    await api.delete(`/conversations/${selectedId}`);
+    setConversations((prev) => prev.filter((c) => c.id !== selectedId));
+    setSelectedId(null);
+    setSelectedConv(null);
+    setMessages([]);
+  } catch {
+    vibrate(30);
+    window.alert("Impossible de supprimer la conversation.");
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -218,14 +241,24 @@ export function MessagingPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-sage-pale bg-white">
-              <div className="h-9 w-9 rounded-full bg-emerald-deep flex items-center justify-center text-ivory-warm text-sm font-medium shrink-0">
-                {selectedConv?.client.name.charAt(0).toUpperCase()}
+                       <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-sage-pale bg-white">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-full bg-emerald-deep flex items-center justify-center text-ivory-warm text-sm font-medium shrink-0">
+                  {selectedConv?.client.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-charcoal truncate">{selectedConv?.client.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{selectedConv?.client.email}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal truncate">{selectedConv?.client.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{selectedConv?.client.email}</p>
-              </div>
+              <button
+                type="button"
+                onClick={handleDeleteConversation}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                aria-label="Supprimer la conversation"
+              >
+                <MessageCircleOff className="h-4.5 w-4.5" strokeWidth={1.75} />
+              </button>
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">

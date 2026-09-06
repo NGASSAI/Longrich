@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSocket, useSocketEvent } from "@/context/SocketContext";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/haptics";
+import { MessageCircleOff } from "lucide-react";
 
 const formatTime = (value) =>
   new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -63,6 +64,28 @@ export function MessagingPage() {
   useSocketEvent("message:deleted", ({ messageId }) => {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   });
+  useSocketEvent("conversation:deleted", ({ conversationId }) => {
+  if (conversation?.id === conversationId) {
+    setConversation(null);
+    setMessages([]);
+    hasJoinedRef.current = false;
+  }
+});
+
+const handleDeleteConversation = async () => {
+  if (!conversation) return;
+  if (!window.confirm("Supprimer toute la conversation ? Cette action est irréversible.")) return;
+  vibrate(10);
+  try {
+    await api.delete(`/conversations/${conversation.id}`);
+    setConversation(null);
+    setMessages([]);
+    hasJoinedRef.current = false;
+  } catch {
+    vibrate(30);
+    window.alert("Impossible de supprimer la conversation.");
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -120,16 +143,28 @@ export function MessagingPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col h-[calc(100vh-4rem)]">
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="h-10 w-10 rounded-full bg-emerald-deep flex items-center justify-center text-ivory-warm">
-          <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
+            <div className="flex items-center justify-between gap-3 pb-4 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-emerald-deep flex items-center justify-center text-ivory-warm">
+            <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <div>
+            <p className="font-display text-xl text-emerald-deep">Assistance Longrich</p>
+            <p className="text-xs text-muted-foreground">
+              {isConnected ? "En ligne" : "Connexion..."}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="font-display text-xl text-emerald-deep">Assistance Longrich</p>
-          <p className="text-xs text-muted-foreground">
-            {isConnected ? "En ligne" : "Connexion..."}
-          </p>
-        </div>
+        {conversation && messages.length > 0 && (
+          <button
+            type="button"
+            onClick={handleDeleteConversation}
+            className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+            aria-label="Supprimer la conversation"
+          >
+            <MessageCircleOff className="h-4.5 w-4.5" strokeWidth={1.75} />
+          </button>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-3">
