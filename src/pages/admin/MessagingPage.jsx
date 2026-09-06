@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, MessageCircle, Trash2 } from "lucide-react";
+import { Send, MessageCircle, MessageCircleOff, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket, useSocketEvent } from "@/context/SocketContext";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/haptics";
-import { MessageCircleOff } from "lucide-react";
 
 const formatTime = (value) =>
   new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -73,7 +72,6 @@ export function MessagingPage() {
     }
   };
 
-  // Rejoint la room socket de la conversation selectionnee, marque comme lu.
   useEffect(() => {
     if (!selectedId || !isConnected || joinedRef.current === selectedId) return;
     emit("join_conversation", selectedId);
@@ -81,8 +79,6 @@ export function MessagingPage() {
     joinedRef.current = selectedId;
   }, [selectedId, isConnected, emit]);
 
-  // Reception temps reel : ajoute au fil si c'est la conversation ouverte,
-  // sinon met juste a jour l'apercu dans la liste.
   useSocketEvent("message:new", (message) => {
     setMessages((prev) => {
       if (message.conversationId !== selectedId) return prev;
@@ -94,33 +90,19 @@ export function MessagingPage() {
     }
     loadConversations();
   });
-useSocketEvent("conversation:deleted", ({ conversationId }) => {
-  setConversations((prev) => prev.filter((c) => c.id !== conversationId));
-  if (selectedId === conversationId) {
-    setSelectedId(null);
-    setSelectedConv(null);
-    setMessages([]);
-  }
-});
-  // Reception d'une suppression de message en temps reel.
+
   useSocketEvent("message:deleted", ({ messageId }) => {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   });
-  const handleDeleteConversation = async () => {
-  if (!selectedId) return;
-  if (!window.confirm("Supprimer toute la conversation ? Cette action est irréversible.")) return;
-  vibrate(10);
-  try {
-    await api.delete(`/conversations/${selectedId}`);
-    setConversations((prev) => prev.filter((c) => c.id !== selectedId));
-    setSelectedId(null);
-    setSelectedConv(null);
-    setMessages([]);
-  } catch {
-    vibrate(30);
-    window.alert("Impossible de supprimer la conversation.");
-  }
-};
+
+  useSocketEvent("conversation:deleted", ({ conversationId }) => {
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+    if (selectedId === conversationId) {
+      setSelectedId(null);
+      setSelectedConv(null);
+      setMessages([]);
+    }
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -161,9 +143,24 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!selectedId) return;
+    if (!window.confirm("Supprimer toute la conversation ? Cette action est irréversible.")) return;
+    vibrate(10);
+    try {
+      await api.delete(`/conversations/${selectedId}`);
+      setConversations((prev) => prev.filter((c) => c.id !== selectedId));
+      setSelectedId(null);
+      setSelectedConv(null);
+      setMessages([]);
+    } catch {
+      vibrate(30);
+      window.alert("Impossible de supprimer la conversation.");
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-3.5rem)] -m-4 sm:-m-6 lg:-m-8">
-      {/* Liste des conversations */}
       <aside className="w-full sm:w-80 shrink-0 border-r border-sage-pale flex flex-col bg-white">
         <div className="p-4 border-b border-sage-pale">
           <h1 className="font-display text-xl text-emerald-deep mb-3">Messagerie</h1>
@@ -226,7 +223,6 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
         </div>
       </aside>
 
-      {/* Fil de discussion */}
       <div className="flex-1 flex flex-col bg-ivory-warm">
         {!selectedId ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
@@ -241,7 +237,7 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
           </div>
         ) : (
           <>
-                       <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-sage-pale bg-white">
+            <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-sage-pale bg-white">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-9 w-9 rounded-full bg-emerald-deep flex items-center justify-center text-ivory-warm text-sm font-medium shrink-0">
                   {selectedConv?.client.name.charAt(0).toUpperCase()}
@@ -270,7 +266,7 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
                     className={`flex ${isMine ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-1 duration-300`}
                   >
                     <div
-                      className={`group relative max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                         isMine
                           ? "bg-emerald-deep text-ivory-warm rounded-br-md"
                           : "bg-sage-pale text-charcoal rounded-bl-md"
@@ -284,10 +280,10 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
                         <button
                           type="button"
                           onClick={() => handleDeleteMessage(message.id)}
-                          className="absolute -left-7 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-full text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="mt-1.5 flex items-center gap-1 text-[10px] text-ivory-warm/70 hover:text-ivory-warm active:scale-95 transition-all"
                           aria-label="Supprimer le message"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3 w-3" /> Supprimer
                         </button>
                       )}
                     </div>
@@ -318,4 +314,4 @@ useSocketEvent("conversation:deleted", ({ conversationId }) => {
       </div>
     </div>
   );
-}
+} 
