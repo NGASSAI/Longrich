@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, MessageCircle } from "lucide-react";
+import { Send, MessageCircle, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket, useSocketEvent } from "@/context/SocketContext";
@@ -94,6 +94,11 @@ export function MessagingPage() {
     loadConversations();
   });
 
+  // Reception d'une suppression de message en temps reel.
+  useSocketEvent("message:deleted", ({ messageId }) => {
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!text.trim() || !selectedId) return;
@@ -115,6 +120,21 @@ export function MessagingPage() {
       setText(content);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Supprimer ce message ?")) return;
+    vibrate(8);
+    try {
+      if (isConnected) {
+        emit("delete_message", { messageId });
+      } else {
+        await api.delete(`/conversations/${selectedId}/messages/${messageId}`);
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      }
+    } catch {
+      vibrate(30);
     }
   };
 
@@ -217,7 +237,7 @@ export function MessagingPage() {
                     className={`flex ${isMine ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-1 duration-300`}
                   >
                     <div
-                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                      className={`group relative max-w-[75%] rounded-2xl px-4 py-2.5 ${
                         isMine
                           ? "bg-emerald-deep text-ivory-warm rounded-br-md"
                           : "bg-sage-pale text-charcoal rounded-bl-md"
@@ -227,6 +247,16 @@ export function MessagingPage() {
                       <p className={`text-[10px] mt-1 ${isMine ? "text-ivory-warm/60" : "text-muted-foreground"}`}>
                         {formatTime(message.createdAt)}
                       </p>
+                      {isMine && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessage(message.id)}
+                          className="absolute -left-7 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-full text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Supprimer le message"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
