@@ -20,7 +20,9 @@ import { MonitoringPage } from "../pages/superadmin/MonitoringPage";
 import { AdminAccountsPage } from "../pages/superadmin/AdminAccountsPage";
 import { SiteSettingsPage } from "../pages/superadmin/SiteSettingsPage";
 import { ActivityLogsPage } from "../pages/superadmin/ActivityLogsPage";
-
+import { MessagingPage as AdminMessagingPage } from "../pages/admin/MessagingPage";
+import { CategoriesPage } from "../pages/admin/CategoriesPage";
+import { StatisticsPage } from "../pages/admin/StatisticsPage";
 
 const Placeholder = ({ label }) => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -79,10 +81,11 @@ export function AppRoutes() {
       >
         <Route path="/admin" element={<DashboardPage />} />
        <Route path="/admin/produits" element={<ProductsPage />} />
+       <Route path="/admin/categories" element={<CategoriesPage />} />
         <Route path="/admin/commandes" element={<OrdersPage />} />
         <Route path="/admin/clients" element={<ClientsPage />} />
-        <Route path="/admin/messagerie" element={<Placeholder label="Conversations clients" />} />
-        <Route path="/admin/statistiques" element={<Placeholder label="Statistiques" />} />
+        <Route path="/admin/messagerie" element={<AdminMessagingPage />} />
+        <Route path="/admin/statistiques" element={<StatisticsPage />} />
       </Route>
      
          {/* --- Super Admin (interface totalement separee, mode sombre dedie) --- */}

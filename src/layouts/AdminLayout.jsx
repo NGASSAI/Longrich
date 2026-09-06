@@ -6,6 +6,7 @@ import {
   Package,
   ShoppingCart,
   Users,
+  Tags,
   MessageCircle,
   BarChart3,
   LogOut,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { label: "Clients", to: "/admin/clients", icon: Users },
   { label: "Messagerie", to: "/admin/messagerie", icon: MessageCircle },
   { label: "Statistiques", to: "/admin/statistiques", icon: BarChart3 },
+  { label: "Catégories", to: "/admin/categories", icon: Tags },
 ];
 
 function SidebarContent({ onNavigate }) {

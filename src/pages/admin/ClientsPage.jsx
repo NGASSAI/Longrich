@@ -70,7 +70,7 @@ export function ClientsPage() {
     setUpdatingId(user.id);
     try {
       const { data } = await api.patch(`/admin/users/${user.id}`, { status: newStatus });
-      setUsers((prev) => prev.map((u) => (u.id === user.id ? data.data.user : u)));
+    setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, ...data.data.user } : u)));
     } catch {
       window.alert("Impossible de mettre à jour ce client.");
     } finally {
@@ -99,9 +99,10 @@ export function ClientsPage() {
     )
       return;
 
-    try {
+        try {
       await api.delete(`/admin/users/${user.id}`);
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      setPagination((prev) => (prev ? { ...prev, total: prev.total - 1 } : prev));
     } catch {
       window.alert("Impossible de supprimer ce client.");
     }
@@ -230,10 +231,40 @@ export function ClientsPage() {
       )}
 
       <Dialog open={!!historyUser} onOpenChange={(open) => !open && setHistoryUser(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Historique des commandes - {historyUser?.name}</DialogTitle>
+            <DialogTitle>Profil client</DialogTitle>
           </DialogHeader>
+
+          {historyUser && (
+            <div className="flex items-start gap-4 pb-4 border-b border-sage-pale">
+              <div className="h-14 w-14 rounded-full bg-sage-pale flex items-center justify-center shrink-0 overflow-hidden text-emerald-deep text-lg font-medium">
+                {historyUser.avatar ? (
+                  <img src={historyUser.avatar} alt={historyUser.name} className="h-full w-full object-cover" />
+                ) : (
+                  historyUser.name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="font-display text-lg text-charcoal">{historyUser.name}</p>
+                <p className="text-sm text-muted-foreground">{historyUser.email}</p>
+                <p className="text-sm text-muted-foreground">{historyUser.phone || "Téléphone non renseigné"}</p>
+                <div className="flex items-center gap-2 pt-1">
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[historyUser.status].className}`}
+                  >
+                    {STATUS_CONFIG[historyUser.status].label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Client depuis {formatDate(historyUser.createdAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <p className="text-sm font-medium text-charcoal pt-2">Historique des commandes</p>
+
           {isLoadingHistory ? (
             <div className="py-12 text-center text-muted-foreground">Chargement des commandes...</div>
           ) : historyOrders.length === 0 ? (
@@ -249,7 +280,7 @@ export function ClientsPage() {
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Passée le {formatDate(order.createdAt)} • Total : <strong className="text-charcoal">{formatFCFA(order.totalAmount)}</strong>
+                    Passée le {formatDate(order.createdAt)} • Total : <strong className="text-charcoal">{formatFCFA(order.total)}</strong>
                   </div>
                 </div>
               ))}
