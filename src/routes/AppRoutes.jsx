@@ -1,15 +1,22 @@
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { SiteLayout } from "../layouts/SiteLayout";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage";
-import { SetSecretNamePage } from "../pages/account/SetSecretNamePage";
+import { ProfilePage } from "../pages/account/ProfilePage";
+import { HomePage } from "../pages/public/HomePage";
+import { CatalogPage } from "../pages/public/CatalogPage";
+import { ProductDetailPage } from "../pages/public/ProductDetailPage";
+import { MyOrdersPage } from "../pages/account/MyOrdersPage";
+import { MessagingPage } from "../pages/chat/MessagingPage";
+import { AdminLayout } from "../layouts/AdminLayout";
+import { DashboardPage } from "../pages/admin/DashboardPage";
+import { ProductsPage } from "../pages/admin/ProductsPage";
+import { OrdersPage } from "../pages/admin/OrdersPage";
 
-// Pages "placeholder" temporaires : chaque route reelle du cahier des charges
-// est deja posee ici avec le bon niveau de protection, mais le contenu sera
-// remplace ecran par ecran dans les prochaines etapes.
 const Placeholder = ({ label }) => (
-  <div className="min-h-screen flex items-center justify-center bg-ivory-warm">
+  <div className="min-h-[60vh] flex items-center justify-center">
     <p className="font-display text-2xl text-emerald-deep">{label}</p>
   </div>
 );
@@ -17,88 +24,60 @@ const Placeholder = ({ label }) => (
 export function AppRoutes() {
   return (
     <Routes>
-      {/* --- Public / Client --- */}
-      <Route path="/" element={<Placeholder label="Accueil / Catalogue" />} />
-      <Route path="/produits/:slug" element={<Placeholder label="Fiche produit" />} />
+      {/* --- Pages pleine page, sans header/footer --- */}
       <Route path="/connexion" element={<LoginPage />} />
       <Route path="/inscription" element={<RegisterPage />} />
       <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
-      {/* --- Client connecte --- */}
-      <Route
+
+      {/* --- Public / Client, avec header + footer (SiteLayout) --- */}
+      <Route element={<SiteLayout />}>
+        <Route path="/" element={<HomePage />} />
+       <Route path="/produits" element={<CatalogPage />} />
+        <Route path="/produits/:slug" element={<ProductDetailPage />} />
+        <Route
   path="/mon-compte"
   element={
     <ProtectedRoute>
-      <SetSecretNamePage />
+      <ProfilePage />
     </ProtectedRoute>
   }
 />
-      <Route
-        path="/mes-commandes"
-        element={
-          <ProtectedRoute>
-            <Placeholder label="Mes commandes" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/messagerie"
-        element={
-          <ProtectedRoute>
-            <Placeholder label="Chat avec l'admin" />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+  path="/mes-commandes"
+  element={
+    <ProtectedRoute>
+      <MyOrdersPage />
+    </ProtectedRoute>
+  }
+/>
+       <Route
+  path="/messagerie"
+  element={
+    <ProtectedRoute>
+      <MessagingPage />
+    </ProtectedRoute>
+  }
+/>
 
-      {/* --- Admin --- */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Dashboard Admin" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/produits"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Gestion produits" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/commandes"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Gestion commandes" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/clients"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Gestion clients" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/messagerie"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Conversations clients" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/statistiques"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <Placeholder label="Statistiques" />
-          </ProtectedRoute>
-        }
-      />
+        <Route path="*" element={<Placeholder label="Page introuvable (404)" />} />
+      </Route>
 
+        {/* --- Admin --- */}
+      <Route
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/admin" element={<DashboardPage />} />
+       <Route path="/admin/produits" element={<ProductsPage />} />
+        <Route path="/admin/commandes" element={<OrdersPage />} />
+        <Route path="/admin/clients" element={<Placeholder label="Gestion clients" />} />
+        <Route path="/admin/messagerie" element={<Placeholder label="Conversations clients" />} />
+        <Route path="/admin/statistiques" element={<Placeholder label="Statistiques" />} />
+      </Route>
+     
       {/* --- Super Admin (interface totalement separee) --- */}
       <Route
         path="/super-admin"
@@ -132,9 +111,6 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
-      {/* --- 404 --- */}
-      <Route path="*" element={<Placeholder label="Page introuvable (404)" />} />
     </Routes>
   );
 }
