@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { OrderDialog } from "@/components/product/OrderDialog";
 import { vibrate } from "@/lib/haptics";
+import { useDocumentMeta } from "@/lib/useDocumentMeta";
 
 const formatPrice = (value) =>
   new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Number(value)) + " FCFA";
@@ -113,6 +114,47 @@ export function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+    useDocumentMeta({
+    title: product?.name,
+    description: product?.description?.slice(0, 160),
+  });
+
+  // Donnees structurees Schema.org Product (exigees section 9 du cahier des
+  // charges) : injectees/retirees manuellement, memes principes que useDocumentMeta.
+  useEffect(() => {
+    if (!product) return;
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.description,
+      image: product.images?.map((img) => img.path) || [],
+      sku: product.sku,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "XAF",
+        price: product.promoPrice || product.price,
+        availability: product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      },
+      aggregateRating: product.commentsCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: "5",
+            reviewCount: String(product.commentsCount),
+          }
+        : undefined,
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [product]);
 
   const loadProduct = useCallback(async () => {
     setIsLoading(true);

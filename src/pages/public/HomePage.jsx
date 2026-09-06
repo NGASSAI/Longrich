@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/ProductCard";
 import { vibrate } from "@/lib/haptics";
-
+import { useDocumentMeta } from "@/lib/useDocumentMeta";
 const VALUES = [
   { icon: Leaf, label: "Ingrédients naturels", desc: "Formules pensées pour votre bien-être" },
   { icon: Truck, label: "Paiement à la livraison", desc: "Réglez à réception, en toute confiance" },
@@ -20,6 +20,10 @@ export function HomePage() {
   const [likedIds, setLikedIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
+  useDocumentMeta({
+    title: "Accueil",
+    description: "Découvrez notre catalogue de cosmétiques et produits de bien-être naturels. Paiement à la livraison.",
+  });
   useEffect(() => {
     let cancelled = false;
 

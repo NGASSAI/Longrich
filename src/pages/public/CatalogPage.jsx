@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/ProductCard";
 import { vibrate } from "@/lib/haptics";
+import { useDocumentMeta } from "@/lib/useDocumentMeta";
 
 const SORT_OPTIONS = [
   { value: "createdAt_desc", label: "Nouveautés" },
@@ -29,6 +30,10 @@ export function CatalogPage() {
   const activeCategory = searchParams.get("categorie") || "";
   const activeSort = searchParams.get("tri") || "createdAt_desc";
   const currentPage = Number(searchParams.get("page") || 1);
+    useDocumentMeta({
+    title: "Catalogue",
+    description: "Parcourez tous nos produits de cosmétiques et bien-être : soins, beauté, naturel.",
+  });
 
   // Categories chargees une seule fois pour les filtres.
   useEffect(() => {
