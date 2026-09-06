@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, ShieldOff, ShieldCheck } from "lucide-react";
+import { Search, ShieldOff, ShieldCheck, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const formatDate = (value) =>
   new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
@@ -8,6 +9,17 @@ const formatDate = (value) =>
 const STATUS_CONFIG = {
   active: { label: "Actif", className: "bg-emerald-deep/10 text-emerald-deep" },
   blocked: { label: "Bloqué", className: "bg-destructive/10 text-destructive" },
+};
+
+const formatFCFA = (value) =>
+  new Intl.NumberFormat("fr-FR").format(Number(value)) + " FCFA";
+
+const ORDER_STATUS_LABELS = {
+  pending: "En attente",
+  confirmed: "Confirmée",
+  shipped: "Expédiée",
+  delivered: "Livrée",
+  cancelled: "Annulée",
 };
 
 export function ClientsPage() {
@@ -18,6 +30,9 @@ export function ClientsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
+  const [historyUser, setHistoryUser] = useState(null);
+  const [historyOrders, setHistoryOrders] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -63,6 +78,35 @@ export function ClientsPage() {
     }
   };
 
+  const openHistory = async (user) => {
+    setHistoryUser(user);
+    setIsLoadingHistory(true);
+    try {
+      const { data } = await api.get("/orders", { params: { userId: user.id, limit: 50 } });
+      setHistoryOrders(data.data.orders);
+    } catch {
+      setHistoryOrders([]);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleDelete = async (user) => {
+    if (
+      !window.confirm(
+        `Supprimer définitivement ${user.name} ? Ses conversations et messages seront supprimés. Ses commandes passées seront conservées.`
+      )
+    )
+      return;
+
+    try {
+      await api.delete(`/admin/users/${user.id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } catch {
+      window.alert("Impossible de supprimer ce client.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -73,7 +117,7 @@ export function ClientsPage() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={search}
@@ -114,7 +158,11 @@ export function ClientsPage() {
             {users.map((user) => {
               const status = STATUS_CONFIG[user.status];
               return (
-                <div key={user.id} className="flex items-center gap-4 px-5 py-3">
+                <div
+                  key={user.id}
+                  className="flex items-center gap-4 px-5 py-3 hover:bg-sage-pale/30 transition-colors cursor-pointer"
+                  onClick={() => openHistory(user)}
+                >
                   <div className="h-9 w-9 rounded-full bg-sage-pale flex items-center justify-center shrink-0 text-emerald-deep text-sm font-medium">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
@@ -130,7 +178,10 @@ export function ClientsPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => toggleStatus(user)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(user);
+                    }}
                     disabled={updatingId === user.id}
                     className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-charcoal hover:bg-sage-pale transition-colors disabled:opacity-40"
                     aria-label={user.status === "active" ? "Bloquer" : "Débloquer"}
@@ -141,6 +192,18 @@ export function ClientsPage() {
                     ) : (
                       <ShieldCheck className="h-4 w-4 text-emerald-deep" />
                     )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(user);
+                    }}
+                    className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-charcoal hover:bg-sage-pale transition-colors"
+                    aria-label="Supprimer"
+                    title="Supprimer ce client"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </button>
                 </div>
               );
@@ -165,6 +228,35 @@ export function ClientsPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={!!historyUser} onOpenChange={(open) => !open && setHistoryUser(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Historique des commandes - {historyUser?.name}</DialogTitle>
+          </DialogHeader>
+          {isLoadingHistory ? (
+            <div className="py-12 text-center text-muted-foreground">Chargement des commandes...</div>
+          ) : historyOrders.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">Aucune commande enregistrée pour ce client.</div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              {historyOrders.map((order) => (
+                <div key={order.id} className="p-4 rounded-xl border border-sage-pale bg-sage-pale/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-emerald-deep">Commande #{order.id.slice(-6)}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-deep/10 text-emerald-deep">
+                      {ORDER_STATUS_LABELS[order.status] || order.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Passée le {formatDate(order.createdAt)} • Total : <strong className="text-charcoal">{formatFCFA(order.totalAmount)}</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

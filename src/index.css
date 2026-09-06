@@ -129,24 +129,24 @@
 .dark {
   --background: #0B0B0A;
   --foreground: var(--color-ivory-warm);
-  --card: #16150F;
+  --card: #1C1B15;
   --card-foreground: var(--color-ivory-warm);
-  --popover: #16150F;
+  --popover: #201F18;
   --popover-foreground: var(--color-ivory-warm);
   --primary: var(--color-amber-gold);
   --primary-foreground: #0B0B0A;
-  --secondary: #1F1D1A;
+  --secondary: #2A281F;
   --secondary-foreground: var(--color-ivory-warm);
-  --muted: #1F1D1A;
-  --muted-foreground: #9A9689;
+  --muted: #2A281F;
+  --muted-foreground: #B8B3A3;
   --accent: var(--color-amber-gold);
   --accent-foreground: #0B0B0A;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #26241E;
-  --input: #26241E;
+  --border: #3D3A2E;
+  --input: #4A4636;
   --ring: var(--color-amber-gold);
   --chart-1: var(--color-amber-gold);
-  --chart-2: #9A9689;
+  --chart-2: #B8B3A3;
   --chart-3: #5B5A54;
   --chart-4: var(--color-sage-pale);
   --chart-5: var(--color-ivory-warm);
@@ -154,9 +154,9 @@
   --sidebar-foreground: var(--color-ivory-warm);
   --sidebar-primary: var(--color-amber-gold);
   --sidebar-primary-foreground: #0B0B0A;
-  --sidebar-accent: #1F1D1A;
+  --sidebar-accent: #2A281F;
   --sidebar-accent-foreground: var(--color-ivory-warm);
-  --sidebar-border: #26241E;
+  --sidebar-border: #3D3A2E;
   --sidebar-ring: var(--color-amber-gold);
 }
 

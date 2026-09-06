@@ -14,6 +14,13 @@ import { AdminLayout } from "../layouts/AdminLayout";
 import { DashboardPage } from "../pages/admin/DashboardPage";
 import { ProductsPage } from "../pages/admin/ProductsPage";
 import { OrdersPage } from "../pages/admin/OrdersPage";
+import { ClientsPage } from "../pages/admin/ClientsPage";
+import { SuperAdminLayout } from "../layouts/SuperAdminLayout";
+import { MonitoringPage } from "../pages/superadmin/MonitoringPage";
+import { AdminAccountsPage } from "../pages/superadmin/AdminAccountsPage";
+import { SiteSettingsPage } from "../pages/superadmin/SiteSettingsPage";
+import { ActivityLogsPage } from "../pages/superadmin/ActivityLogsPage";
+
 
 const Placeholder = ({ label }) => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -73,44 +80,24 @@ export function AppRoutes() {
         <Route path="/admin" element={<DashboardPage />} />
        <Route path="/admin/produits" element={<ProductsPage />} />
         <Route path="/admin/commandes" element={<OrdersPage />} />
-        <Route path="/admin/clients" element={<Placeholder label="Gestion clients" />} />
+        <Route path="/admin/clients" element={<ClientsPage />} />
         <Route path="/admin/messagerie" element={<Placeholder label="Conversations clients" />} />
         <Route path="/admin/statistiques" element={<Placeholder label="Statistiques" />} />
       </Route>
      
-      {/* --- Super Admin (interface totalement separee) --- */}
+         {/* --- Super Admin (interface totalement separee, mode sombre dedie) --- */}
       <Route
-        path="/super-admin"
         element={
           <ProtectedRoute roles={["super_admin"]}>
-            <Placeholder label="Monitoring systeme" />
+            <SuperAdminLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/super-admin/comptes-admin"
-        element={
-          <ProtectedRoute roles={["super_admin"]}>
-            <Placeholder label="Gestion des comptes admin" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/parametres"
-        element={
-          <ProtectedRoute roles={["super_admin"]}>
-            <Placeholder label="Parametres du site" />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin/logs"
-        element={
-          <ProtectedRoute roles={["super_admin"]}>
-            <Placeholder label="Logs d'activite" />
-          </ProtectedRoute>
-        }
-      />
+      >
+       <Route path="/super-admin" element={<MonitoringPage />} />
+        <Route path="/super-admin/comptes-admin" element={<AdminAccountsPage />} />
+         <Route path="/super-admin/parametres" element={<SiteSettingsPage />} />
+        <Route path="/super-admin/logs" element={<ActivityLogsPage />} />
+      </Route>
     </Routes>
   );
 }

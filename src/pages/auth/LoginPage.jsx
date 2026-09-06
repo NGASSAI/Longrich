@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -54,8 +54,15 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [retryAfter, setRetryAfter] = useState(null);
   const from = location.state?.from?.pathname;
+  useEffect(() => {
+  if (retryAfter === null || retryAfter <= 0) return;
+  const timer = setInterval(() => {
+    setRetryAfter((s) => (s > 1 ? s - 1 : null));
+  }, 1000);
+  return () => clearInterval(timer);
+}, [retryAfter]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,10 +74,17 @@ export function LoginPage() {
       const user = await login(email, password);
       vibrate([10, 40, 10]);
       navigate(getRedirectPath(user.role, from), { replace: true });
-    } catch (err) {
+        } catch (err) {
       vibrate(30);
       const code = err.response?.data?.code;
-      setError(ERROR_MESSAGES[code] || "Une erreur est survenue. Réessayez.");
+      const retrySeconds = err.response?.data?.details?.retryAfterSeconds;
+
+      if (code === "TOO_MANY_REQUESTS" && retrySeconds) {
+        setRetryAfter(retrySeconds);
+        setError(null);
+      } else {
+        setError(ERROR_MESSAGES[code] || "Une erreur est survenue. Réessayez.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +189,7 @@ export function LoginPage() {
                 </div>
               </div>
 
-              {error && (
+                            {error && (
                 <p
                   role="alert"
                   className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2 animate-in fade-in duration-200"
@@ -184,14 +198,24 @@ export function LoginPage() {
                 </p>
               )}
 
+              {retryAfter !== null && (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2 animate-in fade-in duration-200"
+                >
+                  Trop de tentatives. Réessayez dans{" "}
+                  {retryAfter >= 60 ? `${Math.ceil(retryAfter / 60)} min` : `${retryAfter}s`}.
+                </p>
+              )}
+
               <div
                 className="animate-in fade-in slide-in-from-bottom-2 duration-500"
                 style={{ animationDelay: "220ms", animationFillMode: "backwards" }}
               >
-                <Button
+                                <Button
                   type="submit"
                   className="w-full transition-transform active:scale-[0.98] shadow-sm hover:shadow-md"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || retryAfter !== null}
                 >
                   {isSubmitting ? "Connexion..." : "Se connecter"}
                 </Button>
