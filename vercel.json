@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://multionatioanle-longrich.onrender.com/sitemap.xml"
+    }
+  ]
+}
